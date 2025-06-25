@@ -180,6 +180,46 @@ impl LinuxDisplayManager {
 
         Ok(())
     }
+
+    pub async fn get_current_display_mode(&self) -> Result<DisplayMode> {
+        unsafe {
+            let screen = XDefaultScreen(self.display);
+            let root = XRootWindow(self.display, screen);
+            let screen_info = XRRGetScreenInfo(self.display, root);
+
+            if screen_info.is_null() {
+                return Err(anyhow!("Failed to get screen info"));
+            }
+
+            let current_config = XRRConfigCurrentConfiguration(screen_info, std::ptr::null_mut());
+            
+            let mut num_sizes = 0;
+            let sizes = XRRConfigSizes(screen_info, &mut num_sizes);
+            
+            if sizes.is_null() || current_config >= num_sizes {
+                XRRFreeScreenConfigInfo(screen_info);
+                return Err(anyhow!("Invalid current configuration"));
+            }
+
+            let current_size = *sizes.offset(current_config as isize);
+            
+            let mut num_rates = 0;
+            let rates = XRRConfigRates(screen_info, current_config, &mut num_rates);
+            let current_rate = if !rates.is_null() && num_rates > 0 {
+                *rates
+            } else {
+                60 // Default fallback
+            };
+
+            XRRFreeScreenConfigInfo(screen_info);
+
+            Ok(DisplayMode {
+                width: current_size.width as u32,
+                height: current_size.height as u32,
+                refresh_rate: current_rate as f64,
+            })
+        }
+    }
 }
 
 impl Drop for LinuxDisplayManager {

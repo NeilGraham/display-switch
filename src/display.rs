@@ -202,6 +202,10 @@ impl DisplayManager {
         self.platform_manager.get_available_modes().await
     }
 
+    pub async fn get_current_display_mode(&self) -> Result<DisplayMode> {
+        self.platform_manager.get_current_display_mode().await
+    }
+
     fn find_exact_match(&self, spec: &DisplaySpec, available_modes: &[DisplayMode]) -> Option<DisplayMode> {
         for mode in available_modes {
             let mode_spec = DisplaySpec {

@@ -137,4 +137,27 @@ impl MacOSDisplayManager {
 
         Ok(())
     }
+
+    pub async fn get_current_display_mode(&self) -> Result<DisplayMode> {
+        unsafe {
+            use core_graphics::display::{CGDisplayCopyDisplayMode, CGDisplayModeRelease};
+            
+            let current_mode = CGDisplayCopyDisplayMode(self.display_id);
+            if current_mode.is_null() {
+                return Err(anyhow!("Failed to get current display mode"));
+            }
+
+            let width = CGDisplayModeGetWidth(current_mode) as u32;
+            let height = CGDisplayModeGetHeight(current_mode) as u32;
+            let refresh_rate = CGDisplayModeGetRefreshRate(current_mode);
+
+            CGDisplayModeRelease(current_mode);
+
+            Ok(DisplayMode {
+                width,
+                height,
+                refresh_rate,
+            })
+        }
+    }
 } 

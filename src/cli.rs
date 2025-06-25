@@ -32,6 +32,10 @@ pub struct Args {
     /// List all available profiles
     #[arg(long)]
     pub list_profiles: bool,
+    
+    /// Display current display specification
+    #[arg(long)]
+    pub current: bool,
 }
 
 // Convert the flat args structure to the enum used by main
@@ -41,11 +45,16 @@ pub enum ParsedArgs {
     CreateProfile { name: String, spec: Vec<String> },
     Profile { name: String },
     ListProfiles,
+    Current { json: bool },
 }
 
 impl Args {
     pub fn to_parsed_args(self) -> ParsedArgs {
-        if self.list_profiles {
+        if self.current {
+            ParsedArgs::Current {
+                json: self.json,
+            }
+        } else if self.list_profiles {
             ParsedArgs::ListProfiles
         } else if let Some(name) = self.create_profile {
             ParsedArgs::CreateProfile {

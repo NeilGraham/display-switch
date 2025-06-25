@@ -58,4 +58,15 @@ impl PlatformDisplayManager {
         #[cfg(not(any(target_os = "windows", target_os = "linux", target_os = "macos")))]
         return self.inner.set_display_mode(mode).await;
     }
+
+    pub async fn get_current_display_mode(&self) -> Result<DisplayMode> {
+        #[cfg(target_os = "windows")]
+        return self.inner.get_current_display_mode().await;
+        #[cfg(target_os = "linux")]
+        return self.inner.get_current_display_mode().await;
+        #[cfg(target_os = "macos")]
+        return self.inner.get_current_display_mode().await;
+        #[cfg(not(any(target_os = "windows", target_os = "linux", target_os = "macos")))]
+        return self.inner.get_current_display_mode().await;
+    }
 } 

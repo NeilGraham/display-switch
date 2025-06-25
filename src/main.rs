@@ -34,6 +34,9 @@ async fn main() -> Result<()> {
         ParsedArgs::ListProfiles => {
             handle_list_profiles(&profile_manager)?;
         }
+        ParsedArgs::Current { json } => {
+            handle_current(&display_manager, json).await?;
+        }
     }
 
     Ok(())
@@ -147,6 +150,18 @@ fn handle_list_profiles(profile_manager: &ProfileManager) -> Result<()> {
             println!("  - {}", spec);
         }
         println!();
+    }
+
+    Ok(())
+}
+
+async fn handle_current(display_manager: &DisplayManager, json: bool) -> Result<()> {
+    let current_mode = display_manager.get_current_display_mode().await?;
+    
+    if json {
+        println!("{}", serde_json::to_string_pretty(&current_mode)?);
+    } else {
+        println!("Current display specification: {}", current_mode);
     }
 
     Ok(())

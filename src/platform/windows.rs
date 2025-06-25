@@ -127,6 +127,29 @@ impl WindowsDisplayManager {
 
         Ok(())
     }
+
+    pub async fn get_current_display_mode(&self) -> Result<DisplayMode> {
+        unsafe {
+            let mut dev_mode: DEVMODEA = mem::zeroed();
+            dev_mode.dmSize = mem::size_of::<DEVMODEA>() as u16;
+
+            let result = EnumDisplaySettingsA(
+                std::ptr::null(),
+                0xFFFFFFFF, // ENUM_CURRENT_SETTINGS
+                &mut dev_mode,
+            );
+
+            if result == 0 {
+                return Err(anyhow!("Failed to get current display settings"));
+            }
+
+            Ok(DisplayMode {
+                width: dev_mode.dmPelsWidth,
+                height: dev_mode.dmPelsHeight,
+                refresh_rate: dev_mode.dmDisplayFrequency as f64,
+            })
+        }
+    }
 }
 
 // Callback function for enumerating monitors (for future multi-monitor support)

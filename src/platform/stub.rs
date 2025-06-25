@@ -49,4 +49,13 @@ impl StubDisplayManager {
             "Display switching not supported on this platform. This is a stub implementation."
         ))
     }
+
+    pub async fn get_current_display_mode(&self) -> Result<DisplayMode> {
+        // Return a mock current display mode for testing
+        Ok(DisplayMode {
+            width: 1920,
+            height: 1080,
+            refresh_rate: 60.0,
+        })
+    }
 } 
