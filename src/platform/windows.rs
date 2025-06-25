@@ -72,15 +72,50 @@ impl WindowsDisplayManager {
 
     pub async fn set_display_mode(&self, mode: &DisplayMode) -> Result<()> {
         unsafe {
-            let mut dev_mode: DEVMODEA = mem::zeroed();
-            dev_mode.dmSize = mem::size_of::<DEVMODEA>() as u16;
-            dev_mode.dmPelsWidth = mode.width;
-            dev_mode.dmPelsHeight = mode.height;
-            dev_mode.dmDisplayFrequency = mode.refresh_rate as u32;
-            dev_mode.dmBitsPerPel = 32; // Use 32-bit color depth
-            dev_mode.dmFields = 0x00040000 | 0x00080000 | 0x00400000 | 0x00020000; // DM_PELSWIDTH | DM_PELSHEIGHT | DM_DISPLAYFREQUENCY | DM_BITSPERPEL
+            // Find the exact mode from available modes to get all parameters
+            let mut found_mode: Option<DEVMODEA> = None;
+            let mut mode_index = 0;
 
-            let result = ChangeDisplaySettingsA(&mut dev_mode, CDS_UPDATEREGISTRY);
+            loop {
+                let mut dev_mode: DEVMODEA = mem::zeroed();
+                dev_mode.dmSize = mem::size_of::<DEVMODEA>() as u16;
+
+                let result = EnumDisplaySettingsA(
+                    std::ptr::null(),
+                    mode_index,
+                    &mut dev_mode,
+                );
+
+                if result == 0 {
+                    break;
+                }
+
+                // Check if this matches our target mode
+                if dev_mode.dmPelsWidth == mode.width
+                    && dev_mode.dmPelsHeight == mode.height
+                    && (dev_mode.dmDisplayFrequency as f64 - mode.refresh_rate).abs() < 0.1
+                    && dev_mode.dmBitsPerPel >= 24
+                {
+                    found_mode = Some(dev_mode);
+                    break;
+                }
+
+                mode_index += 1;
+            }
+
+            let mut target_mode = match found_mode {
+                Some(mode) => mode,
+                None => {
+                    return Err(anyhow!(
+                        "Display mode {}x{}@{}Hz not found in available modes",
+                        mode.width,
+                        mode.height,
+                        mode.refresh_rate
+                    ));
+                }
+            };
+
+            let result = ChangeDisplaySettingsA(&mut target_mode, CDS_UPDATEREGISTRY);
 
             if result != DISP_CHANGE_SUCCESSFUL {
                 return Err(anyhow!(

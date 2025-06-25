@@ -151,7 +151,17 @@ impl DisplaySpec {
 
             best_mode
         } else {
-            // No refresh rate specified, return the mode with the highest refresh rate
+            // No refresh rate specified, prefer common refresh rates (60, 120, 144) over extreme ones
+            // First try to find 60Hz as it's most universally supported
+            for preferred_rate in [60.0, 59.0, 120.0, 144.0, 75.0, 30.0] {
+                for mode in modes {
+                    if (mode.refresh_rate - preferred_rate).abs() < 0.1 {
+                        return Some(mode.clone());
+                    }
+                }
+            }
+            
+            // If no common rates found, return the highest refresh rate
             modes.iter().max_by(|a, b| a.refresh_rate.partial_cmp(&b.refresh_rate).unwrap()).cloned()
         }
     }
