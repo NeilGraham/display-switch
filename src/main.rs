@@ -52,8 +52,8 @@ async fn handle_switch(
 
     for spec in parsed_specs {
         match display_manager.switch_display(&spec, exact).await {
-            Ok(_) => {
-                println!("Successfully switched to display specification: {}", spec);
+            Ok(actual_mode) => {
+                println!("Successfully switched to display specification: {} (requested: {})", actual_mode, spec);
                 return Ok(());
             }
             Err(e) => {
@@ -119,8 +119,8 @@ async fn handle_profile(
     
     for spec in specs {
         match display_manager.switch_display(&spec, false).await {
-            Ok(_) => {
-                println!("Successfully switched to profile '{}' with specification: {}", name, spec);
+            Ok(actual_mode) => {
+                println!("Successfully switched to profile '{}' with specification: {} (requested: {})", name, actual_mode, spec);
                 return Ok(());
             }
             Err(e) => {

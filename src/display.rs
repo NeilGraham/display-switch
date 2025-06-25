@@ -134,34 +134,38 @@ impl DisplaySpec {
                 }
             }
 
-            // Find closest refresh rate, preferring higher rates
-            let mut best_mode = None;
-            let mut min_distance = f64::MAX;
+            // If no exact match, prefer higher refresh rates first
+            // Find all modes with higher refresh rates than target
+            let higher_rates: Vec<_> = modes
+                .iter()
+                .filter(|mode| mode.refresh_rate > target_rate)
+                .collect();
 
-            for mode in modes {
-                let distance = (mode.refresh_rate - target_rate).abs();
-                
-                // Prefer higher refresh rates when distances are equal
-                if distance < min_distance || 
-                   (distance == min_distance && mode.refresh_rate > target_rate) {
-                    min_distance = distance;
-                    best_mode = Some(mode.clone());
-                }
+            if !higher_rates.is_empty() {
+                // Return the lowest higher rate (closest higher rate)
+                return higher_rates
+                    .iter()
+                    .min_by(|a, b| a.refresh_rate.partial_cmp(&b.refresh_rate).unwrap())
+                    .map(|&mode| mode.clone());
             }
 
-            best_mode
+            // If no higher rates available, find the highest lower rate
+            let lower_rates: Vec<_> = modes
+                .iter()
+                .filter(|mode| mode.refresh_rate < target_rate)
+                .collect();
+
+            if !lower_rates.is_empty() {
+                return lower_rates
+                    .iter()
+                    .max_by(|a, b| a.refresh_rate.partial_cmp(&b.refresh_rate).unwrap())
+                    .map(|&mode| mode.clone());
+            }
+
+            // Fallback - should not happen if modes is not empty
+            modes.first().cloned()
         } else {
-            // No refresh rate specified, prefer common refresh rates (60, 120, 144) over extreme ones
-            // First try to find 60Hz as it's most universally supported
-            for preferred_rate in [60.0, 59.0, 120.0, 144.0, 75.0, 30.0] {
-                for mode in modes {
-                    if (mode.refresh_rate - preferred_rate).abs() < 0.1 {
-                        return Some(mode.clone());
-                    }
-                }
-            }
-            
-            // If no common rates found, return the highest refresh rate
+            // No refresh rate specified, return the mode with the highest refresh rate
             modes.iter().max_by(|a, b| a.refresh_rate.partial_cmp(&b.refresh_rate).unwrap()).cloned()
         }
     }
@@ -174,7 +178,7 @@ impl DisplayManager {
         })
     }
 
-    pub async fn switch_display(&self, spec: &DisplaySpec, exact: bool) -> Result<()> {
+    pub async fn switch_display(&self, spec: &DisplaySpec, exact: bool) -> Result<DisplayMode> {
         let available_modes = self.platform_manager.get_available_modes().await?;
         
         let target_mode = if exact {
@@ -188,7 +192,7 @@ impl DisplayManager {
         match target_mode {
             Some(mode) => {
                 self.platform_manager.set_display_mode(&mode).await?;
-                Ok(())
+                Ok(mode)
             }
             None => Err(anyhow!("No suitable display mode found for specification: {}", spec)),
         }
