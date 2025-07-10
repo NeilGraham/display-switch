@@ -66,13 +66,12 @@ async fn handle_switch(
         match display_manager.switch_display(&spec, exact).await {
             Ok(actual_mode) => {
                 println!(
-                    "Successfully switched to display specification: {} (requested: {})",
-                    actual_mode, spec
+                    "Successfully switched to display specification: {actual_mode} (requested: {spec})"
                 );
                 return Ok(());
             }
             Err(e) => {
-                eprintln!("Failed to switch to {}: {}", spec, e);
+                eprintln!("Failed to switch to {spec}: {e}");
                 continue;
             }
         }
@@ -102,7 +101,7 @@ async fn handle_list(
         println!("{}", serde_json::to_string_pretty(&filtered_modes)?);
     } else {
         for mode in filtered_modes {
-            println!("{}", mode);
+            println!("{mode}");
         }
     }
 
@@ -121,7 +120,7 @@ fn handle_create_profile(
     let parsed_specs = parsed_specs?;
 
     profile_manager.create_profile(name.clone(), parsed_specs)?;
-    println!("Created profile: {}", name);
+    println!("Created profile: {name}");
     Ok(())
 }
 
@@ -136,22 +135,18 @@ async fn handle_profile(
         match display_manager.switch_display(&spec, false).await {
             Ok(actual_mode) => {
                 println!(
-                    "Successfully switched to profile '{}' with specification: {} (requested: {})",
-                    name, actual_mode, spec
+                    "Successfully switched to profile '{name}' with specification: {actual_mode} (requested: {spec})"
                 );
                 return Ok(());
             }
             Err(e) => {
-                eprintln!("Failed to switch to {}: {}", spec, e);
+                eprintln!("Failed to switch to {spec}: {e}");
                 continue;
             }
         }
     }
 
-    anyhow::bail!(
-        "No suitable display specification in profile '{}' could be applied",
-        name
-    );
+    anyhow::bail!("No suitable display specification in profile '{name}' could be applied");
 }
 
 fn handle_list_profiles(profile_manager: &ProfileManager) -> Result<()> {
@@ -163,9 +158,9 @@ fn handle_list_profiles(profile_manager: &ProfileManager) -> Result<()> {
     }
 
     for (name, specs) in profiles {
-        println!("Profile: {}", name);
+        println!("Profile: {name}");
         for spec in specs {
-            println!("  - {}", spec);
+            println!("  - {spec}");
         }
         println!();
     }
@@ -179,7 +174,7 @@ async fn handle_current(display_manager: &DisplayManager, json: bool) -> Result<
     if json {
         println!("{}", serde_json::to_string_pretty(&current_mode)?);
     } else {
-        println!("Current display specification: {}", current_mode);
+        println!("Current display specification: {current_mode}");
     }
 
     Ok(())

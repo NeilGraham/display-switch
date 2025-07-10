@@ -34,8 +34,7 @@ impl ProfileManager {
                 Ok(data) => data,
                 Err(e) => {
                     eprintln!(
-                        "Warning: Failed to parse profiles file: {}. Starting with empty profiles.",
-                        e
+                        "Warning: Failed to parse profiles file: {e}. Starting with empty profiles."
                     );
                     ProfilesData {
                         profiles: HashMap::new(),

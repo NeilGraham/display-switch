@@ -280,16 +280,16 @@ impl fmt::Display for DisplaySpec {
         let mut parts = Vec::new();
 
         if let (Some(width), Some(height)) = (self.width, self.height) {
-            parts.push(format!("{}x{}", width, height));
+            parts.push(format!("{width}x{height}"));
         } else if let Some((w_ratio, h_ratio)) = self.aspect_ratio {
-            parts.push(format!("{}:{}", w_ratio, h_ratio));
+            parts.push(format!("{w_ratio}:{h_ratio}"));
         }
 
         if let Some(rate) = self.refresh_rate {
             if parts.is_empty() {
-                parts.push(format!("{}hz", rate));
+                parts.push(format!("{rate}hz"));
             } else {
-                parts[0] = format!("{}@{}hz", parts[0], rate);
+                parts[0] = format!("{}@{rate}hz", parts[0]);
             }
         }
 
