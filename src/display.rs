@@ -24,6 +24,7 @@ pub struct DisplayManager {
 }
 
 impl DisplaySpec {
+    #[allow(dead_code)]
     pub fn matches_filter(&self, filter: &DisplaySpec) -> bool {
         // Check width and height
         if let (Some(filter_width), Some(filter_height)) = (filter.width, filter.height) {
@@ -61,7 +62,11 @@ impl DisplaySpec {
     pub fn to_concrete_spec(&self, available_modes: &[DisplayMode]) -> Option<DisplayMode> {
         // If we have concrete width and height, find exact or closest match
         if let (Some(target_width), Some(target_height)) = (self.width, self.height) {
-            return self.find_best_mode_for_resolution(available_modes, target_width, target_height);
+            return self.find_best_mode_for_resolution(
+                available_modes,
+                target_width,
+                target_height,
+            );
         }
 
         // If we have aspect ratio, find modes matching that aspect ratio
@@ -109,9 +114,10 @@ impl DisplaySpec {
         let mut min_distance = f64::MAX;
 
         for mode in available_modes {
-            let distance = ((mode.width as f64 - target_width as f64).powi(2) 
-                + (mode.height as f64 - target_height as f64).powi(2)).sqrt();
-            
+            let distance = ((mode.width as f64 - target_width as f64).powi(2)
+                + (mode.height as f64 - target_height as f64).powi(2))
+            .sqrt();
+
             if distance < min_distance {
                 min_distance = distance;
                 closest_mode = Some(mode.clone());
@@ -166,7 +172,10 @@ impl DisplaySpec {
             modes.first().cloned()
         } else {
             // No refresh rate specified, return the mode with the highest refresh rate
-            modes.iter().max_by(|a, b| a.refresh_rate.partial_cmp(&b.refresh_rate).unwrap()).cloned()
+            modes
+                .iter()
+                .max_by(|a, b| a.refresh_rate.partial_cmp(&b.refresh_rate).unwrap())
+                .cloned()
         }
     }
 }
@@ -180,7 +189,7 @@ impl DisplayManager {
 
     pub async fn switch_display(&self, spec: &DisplaySpec, exact: bool) -> Result<DisplayMode> {
         let available_modes = self.platform_manager.get_available_modes().await?;
-        
+
         let target_mode = if exact {
             // For exact match, find a mode that exactly matches the specification
             self.find_exact_match(spec, &available_modes)
@@ -194,7 +203,10 @@ impl DisplayManager {
                 self.platform_manager.set_display_mode(&mode).await?;
                 Ok(mode)
             }
-            None => Err(anyhow!("No suitable display mode found for specification: {}", spec)),
+            None => Err(anyhow!(
+                "No suitable display mode found for specification: {}",
+                spec
+            )),
         }
     }
 
@@ -206,7 +218,11 @@ impl DisplayManager {
         self.platform_manager.get_current_display_mode().await
     }
 
-    fn find_exact_match(&self, spec: &DisplaySpec, available_modes: &[DisplayMode]) -> Option<DisplayMode> {
+    fn find_exact_match(
+        &self,
+        spec: &DisplaySpec,
+        available_modes: &[DisplayMode],
+    ) -> Option<DisplayMode> {
         for mode in available_modes {
             let mode_spec = DisplaySpec {
                 width: Some(mode.width),
@@ -363,4 +379,4 @@ mod tests {
         assert_eq!(gcd(16, 9), 1);
         assert_eq!(gcd(4, 3), 1);
     }
-} 
+}

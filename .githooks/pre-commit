@@ -1,0 +1,50 @@
+#!/bin/bash
+
+# Pre-commit hook for display-switch
+# Runs the same checks as CI to catch issues before committing
+
+set -e
+
+echo "🔍 Running pre-commit checks..."
+
+# Check if we're in a Rust project
+if [ ! -f "Cargo.toml" ]; then
+    echo "❌ Error: Not in a Rust project directory"
+    exit 1
+fi
+
+# 1. Check formatting
+echo "📝 Checking code formatting..."
+if ! cargo fmt --all -- --check; then
+    echo "❌ Code formatting check failed!"
+    echo "💡 Run 'cargo fmt --all' to fix formatting issues"
+    exit 1
+fi
+echo "✅ Code formatting is correct"
+
+# 2. Run clippy
+echo "🔍 Running clippy linter..."
+if ! cargo clippy -- -D warnings; then
+    echo "❌ Clippy found issues!"
+    echo "💡 Fix the clippy warnings above before committing"
+    exit 1
+fi
+echo "✅ Clippy checks passed"
+
+# 3. Build the project
+echo "🔨 Building project..."
+if ! cargo build --verbose; then
+    echo "❌ Build failed!"
+    exit 1
+fi
+echo "✅ Build successful"
+
+# 4. Run tests
+echo "🧪 Running tests..."
+if ! cargo test --verbose; then
+    echo "❌ Tests failed!"
+    exit 1
+fi
+echo "✅ All tests passed"
+
+echo "🎉 All pre-commit checks passed! Ready to commit." 

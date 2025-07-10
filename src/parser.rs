@@ -5,7 +5,7 @@ use crate::display::DisplaySpec;
 
 pub fn parse_display_spec(spec: &str) -> Result<DisplaySpec> {
     let spec = spec.trim().to_lowercase();
-    
+
     // Split by @ to separate resolution/aspect from refresh rate
     let parts: Vec<&str> = spec.split('@').collect();
     let resolution_part = parts[0];
@@ -59,9 +59,9 @@ fn parse_resolution(resolution: &str) -> Result<(u32, u32)> {
     if let Some(captures) = k_regex.captures(resolution) {
         let k = captures[1].parse::<u32>()?;
         return match k {
-            2 => Ok((2048, 1080)),    // 2K DCI
-            4 => Ok((3840, 2160)),    // 4K UHD
-            8 => Ok((7680, 4320)),    // 8K UHD
+            2 => Ok((2048, 1080)), // 2K DCI
+            4 => Ok((3840, 2160)), // 4K UHD
+            8 => Ok((7680, 4320)), // 8K UHD
             _ => Err(anyhow!("Unsupported K resolution: {}k", k)),
         };
     }
@@ -108,13 +108,13 @@ fn parse_refresh_rate(rate: &str) -> Result<f64> {
 fn calculate_width_from_height(height: u32) -> u32 {
     // Common aspect ratios and their widths for given heights
     match height {
-        480 => 640,    // 4:3
-        576 => 768,    // 4:3 PAL
-        720 => 1280,   // 16:9
-        1080 => 1920,  // 16:9
-        1440 => 2560,  // 16:9
-        2160 => 3840,  // 16:9 4K
-        4320 => 7680,  // 16:9 8K
+        480 => 640,   // 4:3
+        576 => 768,   // 4:3 PAL
+        720 => 1280,  // 16:9
+        1080 => 1920, // 16:9
+        1440 => 2560, // 16:9
+        2160 => 3840, // 16:9 4K
+        4320 => 7680, // 16:9 8K
         // Default to 16:9 aspect ratio
         _ => (height * 16) / 9,
     }
@@ -164,4 +164,4 @@ mod tests {
         assert_eq!(spec.height, Some(2160));
         assert_eq!(spec.refresh_rate, None);
     }
-} 
+}

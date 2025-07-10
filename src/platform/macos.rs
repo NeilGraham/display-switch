@@ -5,9 +5,9 @@ use core_foundation::dictionary::{CFDictionary, CFDictionaryRef};
 use core_foundation::number::{CFNumber, CFNumberRef};
 use core_foundation::string::{CFString, CFStringRef};
 use core_graphics::display::{
-    CGDirectDisplayID, CGDisplayModeRef, CGGetActiveDisplayList, CGMainDisplayID,
-    CGDisplayCopyAllDisplayModes, CGDisplayModeGetWidth, CGDisplayModeGetHeight,
-    CGDisplayModeGetRefreshRate, CGDisplaySetDisplayMode,
+    CGDirectDisplayID, CGDisplayCopyAllDisplayModes, CGDisplayModeGetHeight,
+    CGDisplayModeGetRefreshRate, CGDisplayModeGetWidth, CGDisplayModeRef, CGDisplaySetDisplayMode,
+    CGGetActiveDisplayList, CGMainDisplayID,
 };
 
 use crate::display::DisplayMode;
@@ -54,9 +54,9 @@ impl MacOSDisplayManager {
                 // Avoid duplicates and filter out unusable modes
                 if width > 0 && height > 0 && refresh_rate > 0.0 {
                     if !display_modes.iter().any(|m| {
-                        m.width == mode.width 
-                        && m.height == mode.height 
-                        && (m.refresh_rate - mode.refresh_rate).abs() < 0.1
+                        m.width == mode.width
+                            && m.height == mode.height
+                            && (m.refresh_rate - mode.refresh_rate).abs() < 0.1
                     }) {
                         display_modes.push(mode);
                     }
@@ -70,12 +70,14 @@ impl MacOSDisplayManager {
             }
 
             // Sort by resolution, then by refresh rate
-            display_modes.sort_by(|a, b| {
-                match (a.width * a.height).cmp(&(b.width * b.height)) {
-                    std::cmp::Ordering::Equal => a.refresh_rate.partial_cmp(&b.refresh_rate).unwrap(),
+            display_modes.sort_by(
+                |a, b| match (a.width * a.height).cmp(&(b.width * b.height)) {
+                    std::cmp::Ordering::Equal => {
+                        a.refresh_rate.partial_cmp(&b.refresh_rate).unwrap()
+                    }
                     other => other,
-                }
-            });
+                },
+            );
 
             Ok(display_modes)
         }
@@ -141,7 +143,7 @@ impl MacOSDisplayManager {
     pub async fn get_current_display_mode(&self) -> Result<DisplayMode> {
         unsafe {
             use core_graphics::display::{CGDisplayCopyDisplayMode, CGDisplayModeRelease};
-            
+
             let current_mode = CGDisplayCopyDisplayMode(self.display_id);
             if current_mode.is_null() {
                 return Err(anyhow!("Failed to get current display mode"));
@@ -160,4 +162,4 @@ impl MacOSDisplayManager {
             })
         }
     }
-} 
+}

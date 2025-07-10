@@ -1,11 +1,11 @@
-use clap::Parser;
 use anyhow::Result;
+use clap::Parser;
 
 mod cli;
 mod display;
 mod parser;
-mod profile;
 mod platform;
+mod profile;
 
 use cli::{Args, ParsedArgs};
 use display::{DisplayManager, DisplaySpec};
@@ -13,8 +13,8 @@ use profile::ProfileManager;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let args = Args::parse().to_parsed_args();
-    
+    let args = Args::parse().into_parsed_args();
+
     let display_manager = DisplayManager::new()?;
     let mut profile_manager = ProfileManager::new()?;
 
@@ -65,7 +65,10 @@ async fn handle_switch(
     for spec in parsed_specs {
         match display_manager.switch_display(&spec, exact).await {
             Ok(actual_mode) => {
-                println!("Successfully switched to display specification: {} (requested: {})", actual_mode, spec);
+                println!(
+                    "Successfully switched to display specification: {} (requested: {})",
+                    actual_mode, spec
+                );
                 return Ok(());
             }
             Err(e) => {
@@ -79,12 +82,12 @@ async fn handle_switch(
 }
 
 async fn handle_list(
-    display_manager: &DisplayManager, 
+    display_manager: &DisplayManager,
     filter_spec: Option<String>,
     json: bool,
 ) -> Result<()> {
     let available_modes = display_manager.list_available_modes().await?;
-    
+
     let filtered_modes = if let Some(filter) = filter_spec {
         let filter_spec = parser::parse_display_spec(&filter)?;
         available_modes
@@ -128,11 +131,14 @@ async fn handle_profile(
     name: String,
 ) -> Result<()> {
     let specs = profile_manager.get_profile(&name)?;
-    
+
     for spec in specs {
         match display_manager.switch_display(&spec, false).await {
             Ok(actual_mode) => {
-                println!("Successfully switched to profile '{}' with specification: {} (requested: {})", name, actual_mode, spec);
+                println!(
+                    "Successfully switched to profile '{}' with specification: {} (requested: {})",
+                    name, actual_mode, spec
+                );
                 return Ok(());
             }
             Err(e) => {
@@ -142,12 +148,15 @@ async fn handle_profile(
         }
     }
 
-    anyhow::bail!("No suitable display specification in profile '{}' could be applied", name);
+    anyhow::bail!(
+        "No suitable display specification in profile '{}' could be applied",
+        name
+    );
 }
 
 fn handle_list_profiles(profile_manager: &ProfileManager) -> Result<()> {
     let profiles = profile_manager.list_profiles()?;
-    
+
     if profiles.is_empty() {
         println!("No profiles found.");
         return Ok(());
@@ -166,7 +175,7 @@ fn handle_list_profiles(profile_manager: &ProfileManager) -> Result<()> {
 
 async fn handle_current(display_manager: &DisplayManager, json: bool) -> Result<()> {
     let current_mode = display_manager.get_current_display_mode().await?;
-    
+
     if json {
         println!("{}", serde_json::to_string_pretty(&current_mode)?);
     } else {
@@ -174,4 +183,4 @@ async fn handle_current(display_manager: &DisplayManager, json: bool) -> Result<
     }
 
     Ok(())
-} 
+}

@@ -1,12 +1,12 @@
-use anyhow::Result;
 use crate::display::DisplayMode;
+use anyhow::Result;
 
-#[cfg(target_os = "windows")]
-mod windows;
 #[cfg(target_os = "linux")]
 mod linux;
 #[cfg(target_os = "macos")]
 mod macos;
+#[cfg(target_os = "windows")]
+mod windows;
 
 // For unsupported platforms, provide a stub implementation
 #[cfg(not(any(target_os = "windows", target_os = "linux", target_os = "macos")))]
@@ -69,4 +69,4 @@ impl PlatformDisplayManager {
         #[cfg(not(any(target_os = "windows", target_os = "linux", target_os = "macos")))]
         return self.inner.get_current_display_mode().await;
     }
-} 
+}

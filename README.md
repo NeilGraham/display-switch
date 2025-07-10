@@ -61,6 +61,45 @@ This project uses GitHub Actions for CI/CD:
 
 > **Note**: Linux and macOS builds are currently commented out in the workflows. To enable them, uncomment the relevant sections in the workflow files.
 
+### Git Hooks
+
+This project includes a pre-commit hook that runs the same checks as CI to catch issues before committing.
+
+#### Setup Git Hooks
+
+To enable the pre-commit hook, configure git to use the `.githooks` directory:
+
+```bash
+# Set the hooks directory for this repository
+git config core.hooksPath .githooks
+```
+
+#### What the Pre-commit Hook Does
+
+The pre-commit hook (`.githooks/pre-commit`) automatically runs:
+
+1. **Code formatting check** (`cargo fmt --all -- --check`)
+2. **Clippy linting** (`cargo clippy -- -D warnings`)
+3. **Build verification** (`cargo build --verbose`)
+4. **Test execution** (`cargo test --verbose`)
+
+If any check fails, the commit will be blocked and you'll see helpful error messages with suggestions on how to fix the issues.
+
+#### Manual Execution
+
+You can also run the pre-commit checks manually:
+
+```bash
+# Run the pre-commit hook manually
+./.githooks/pre-commit
+
+# Or run individual checks
+cargo fmt --all -- --check
+cargo clippy -- -D warnings
+cargo build
+cargo test
+```
+
 ## CLI Usage
 
 #### Switch to a display specification:

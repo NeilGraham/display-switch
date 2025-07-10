@@ -1,8 +1,5 @@
 use anyhow::{anyhow, Result};
-use std::ffi::CString;
 use std::mem;
-use winapi::shared::minwindef::LPARAM;
-use winapi::shared::windef::{HDC, HMONITOR, LPRECT};
 use winapi::um::wingdi::DEVMODEA;
 use winapi::um::winuser::{
     ChangeDisplaySettingsA, EnumDisplaySettingsA, CDS_UPDATEREGISTRY, DISP_CHANGE_SUCCESSFUL,
@@ -26,11 +23,7 @@ impl WindowsDisplayManager {
                 let mut dev_mode: DEVMODEA = mem::zeroed();
                 dev_mode.dmSize = mem::size_of::<DEVMODEA>() as u16;
 
-                let result = EnumDisplaySettingsA(
-                    std::ptr::null(),
-                    mode_index,
-                    &mut dev_mode,
-                );
+                let result = EnumDisplaySettingsA(std::ptr::null(), mode_index, &mut dev_mode);
 
                 if result == 0 {
                     break;
@@ -45,8 +38,15 @@ impl WindowsDisplayManager {
                     };
 
                     // Avoid duplicates and invalid modes
-                    if mode.width > 0 && mode.height > 0 && mode.refresh_rate > 0.0 
-                        && !modes.iter().any(|m: &DisplayMode| m.width == mode.width && m.height == mode.height && (m.refresh_rate - mode.refresh_rate).abs() < 0.1) {
+                    if mode.width > 0
+                        && mode.height > 0
+                        && mode.refresh_rate > 0.0
+                        && !modes.iter().any(|m: &DisplayMode| {
+                            m.width == mode.width
+                                && m.height == mode.height
+                                && (m.refresh_rate - mode.refresh_rate).abs() < 0.1
+                        })
+                    {
                         modes.push(mode);
                     }
                 }
@@ -60,12 +60,12 @@ impl WindowsDisplayManager {
         }
 
         // Sort by resolution, then by refresh rate
-        modes.sort_by(|a, b| {
-            match (a.width * a.height).cmp(&(b.width * b.height)) {
+        modes.sort_by(
+            |a, b| match (a.width * a.height).cmp(&(b.width * b.height)) {
                 std::cmp::Ordering::Equal => a.refresh_rate.partial_cmp(&b.refresh_rate).unwrap(),
                 other => other,
-            }
-        });
+            },
+        );
 
         Ok(modes)
     }
@@ -80,11 +80,7 @@ impl WindowsDisplayManager {
                 let mut dev_mode: DEVMODEA = mem::zeroed();
                 dev_mode.dmSize = mem::size_of::<DEVMODEA>() as u16;
 
-                let result = EnumDisplaySettingsA(
-                    std::ptr::null(),
-                    mode_index,
-                    &mut dev_mode,
-                );
+                let result = EnumDisplaySettingsA(std::ptr::null(), mode_index, &mut dev_mode);
 
                 if result == 0 {
                     break;
@@ -151,13 +147,3 @@ impl WindowsDisplayManager {
         }
     }
 }
-
-// Callback function for enumerating monitors (for future multi-monitor support)
-unsafe extern "system" fn monitor_enum_proc(
-    _monitor: HMONITOR,
-    _hdc: HDC,
-    _rect: LPRECT,
-    _data: LPARAM,
-) -> i32 {
-    1 // Continue enumeration
-} 

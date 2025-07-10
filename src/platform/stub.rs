@@ -1,5 +1,5 @@
-use anyhow::{anyhow, Result};
 use crate::display::DisplayMode;
+use anyhow::{anyhow, Result};
 
 pub struct StubDisplayManager;
 
@@ -58,4 +58,4 @@ impl StubDisplayManager {
             refresh_rate: 60.0,
         })
     }
-} 
+}

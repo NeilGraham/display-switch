@@ -2,8 +2,8 @@ use anyhow::{anyhow, Result};
 use std::ptr;
 use x11::xlib::{Display, XCloseDisplay, XDefaultScreen, XOpenDisplay, XRootWindow};
 use x11::xrandr::{
-    XRRConfigCurrentConfiguration, XRRConfigRates, XRRConfigSizes,
-    XRRFreeScreenConfigInfo, XRRGetScreenInfo, XRRSetScreenConfigAndRate,
+    XRRConfigCurrentConfiguration, XRRConfigRates, XRRConfigSizes, XRRFreeScreenConfigInfo,
+    XRRGetScreenInfo, XRRSetScreenConfigAndRate,
 };
 
 use crate::display::DisplayMode;
@@ -46,14 +46,14 @@ impl LinuxDisplayManager {
 
             for i in 0..num_sizes {
                 let size = *sizes.offset(i as isize);
-                
+
                 let mut num_rates = 0;
                 let rates = XRRConfigRates(screen_info, i, &mut num_rates);
 
                 if !rates.is_null() && num_rates > 0 {
                     for j in 0..num_rates {
                         let rate = *rates.offset(j as isize);
-                        
+
                         let mode = DisplayMode {
                             width: size.width as u32,
                             height: size.height as u32,
@@ -62,9 +62,9 @@ impl LinuxDisplayManager {
 
                         // Avoid duplicates
                         if !modes.iter().any(|m: &DisplayMode| {
-                            m.width == mode.width 
-                            && m.height == mode.height 
-                            && (m.refresh_rate - mode.refresh_rate).abs() < 0.1
+                            m.width == mode.width
+                                && m.height == mode.height
+                                && (m.refresh_rate - mode.refresh_rate).abs() < 0.1
                         }) {
                             modes.push(mode);
                         }
@@ -80,12 +80,12 @@ impl LinuxDisplayManager {
         }
 
         // Sort by resolution, then by refresh rate
-        modes.sort_by(|a, b| {
-            match (a.width * a.height).cmp(&(b.width * b.height)) {
+        modes.sort_by(
+            |a, b| match (a.width * a.height).cmp(&(b.width * b.height)) {
                 std::cmp::Ordering::Equal => a.refresh_rate.partial_cmp(&b.refresh_rate).unwrap(),
                 other => other,
-            }
-        });
+            },
+        );
 
         Ok(modes)
     }
@@ -172,7 +172,10 @@ impl LinuxDisplayManager {
             XRRFreeScreenConfigInfo(screen_info);
 
             if result != 0 {
-                return Err(anyhow!("Failed to set display mode. XRandR error: {}", result));
+                return Err(anyhow!(
+                    "Failed to set display mode. XRandR error: {}",
+                    result
+                ));
             }
         }
 
@@ -190,17 +193,17 @@ impl LinuxDisplayManager {
             }
 
             let current_config = XRRConfigCurrentConfiguration(screen_info, std::ptr::null_mut());
-            
+
             let mut num_sizes = 0;
             let sizes = XRRConfigSizes(screen_info, &mut num_sizes);
-            
+
             if sizes.is_null() || i32::from(current_config) >= num_sizes {
                 XRRFreeScreenConfigInfo(screen_info);
                 return Err(anyhow!("Invalid current configuration"));
             }
 
             let current_size = *sizes.offset(current_config as isize);
-            
+
             let mut num_rates = 0;
             let rates = XRRConfigRates(screen_info, current_config.into(), &mut num_rates);
             let current_rate = if !rates.is_null() && num_rates > 0 {
@@ -228,4 +231,4 @@ impl Drop for LinuxDisplayManager {
             }
         }
     }
-} 
+}
