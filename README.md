@@ -6,12 +6,15 @@ A cross-platform (Windows, Linux, MacOS) Rust CLI tool for switching and listing
 
 ### Download Pre-built Binaries
 
-Pre-built binaries are available for Windows, Linux, and macOS on the [Releases page](../../releases).
+Pre-built binaries are available for Windows on the [Releases page](../../releases).
 
 - **Windows**: `display-switch-windows-x86_64.exe`
+
+<!-- Other platforms are commented out in CI:
 - **Linux**: `display-switch-linux-x86_64` 
 - **macOS Intel**: `display-switch-macos-x86_64`
 - **macOS Apple Silicon**: `display-switch-macos-aarch64`
+-->
 
 ### Building from source
 
@@ -45,7 +48,7 @@ To create a new release with pre-built binaries:
    ```
 
 2. GitHub Actions will automatically:
-   - Build binaries for all platforms
+   - Build binaries for Windows
    - Create a new GitHub release
    - Attach the binaries to the release
 
@@ -53,8 +56,10 @@ To create a new release with pre-built binaries:
 
 This project uses GitHub Actions for CI/CD:
 
-- **CI Workflow** (`.github/workflows/ci.yml`): Runs on every push/PR to test builds and run linting
-- **Build Workflow** (`.github/workflows/build.yml`): Creates release binaries when tags are pushed
+- **CI Workflow** (`.github/workflows/ci.yml`): Runs on every push/PR to test builds and run linting (Windows only)
+- **Build Workflow** (`.github/workflows/build.yml`): Creates release binaries when tags are pushed (Windows only)
+
+> **Note**: Linux and macOS builds are currently commented out in the workflows. To enable them, uncomment the relevant sections in the workflow files.
 
 ## CLI Usage
 

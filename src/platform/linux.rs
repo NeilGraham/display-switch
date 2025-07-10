@@ -1,11 +1,9 @@
 use anyhow::{anyhow, Result};
-use std::ffi::CStr;
 use std::ptr;
 use x11::xlib::{Display, XCloseDisplay, XDefaultScreen, XOpenDisplay, XRootWindow};
 use x11::xrandr::{
     XRRConfigCurrentConfiguration, XRRConfigRates, XRRConfigSizes,
     XRRFreeScreenConfigInfo, XRRGetScreenInfo, XRRSetScreenConfigAndRate,
-    XRRScreenConfiguration, XRRScreenSize,
 };
 
 use crate::display::DisplayMode;
@@ -63,7 +61,7 @@ impl LinuxDisplayManager {
                         };
 
                         // Avoid duplicates
-                        if !modes.iter().any(|m| {
+                        if !modes.iter().any(|m: &DisplayMode| {
                             m.width == mode.width 
                             && m.height == mode.height 
                             && (m.refresh_rate - mode.refresh_rate).abs() < 0.1
@@ -196,7 +194,7 @@ impl LinuxDisplayManager {
             let mut num_sizes = 0;
             let sizes = XRRConfigSizes(screen_info, &mut num_sizes);
             
-            if sizes.is_null() || current_config >= num_sizes {
+            if sizes.is_null() || i32::from(current_config) >= num_sizes {
                 XRRFreeScreenConfigInfo(screen_info);
                 return Err(anyhow!("Invalid current configuration"));
             }
@@ -204,7 +202,7 @@ impl LinuxDisplayManager {
             let current_size = *sizes.offset(current_config as isize);
             
             let mut num_rates = 0;
-            let rates = XRRConfigRates(screen_info, current_config, &mut num_rates);
+            let rates = XRRConfigRates(screen_info, current_config.into(), &mut num_rates);
             let current_rate = if !rates.is_null() && num_rates > 0 {
                 *rates
             } else {
