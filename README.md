@@ -4,6 +4,15 @@ A cross-platform (Windows, Linux, MacOS) Rust CLI tool for switching and listing
 
 ## Installation
 
+### Download Pre-built Binaries
+
+Pre-built binaries are available for Windows, Linux, and macOS on the [Releases page](../../releases).
+
+- **Windows**: `display-switch-windows-x86_64.exe`
+- **Linux**: `display-switch-linux-x86_64` 
+- **macOS Intel**: `display-switch-macos-x86_64`
+- **macOS Apple Silicon**: `display-switch-macos-aarch64`
+
 ### Building from source
 
 ```bash
@@ -22,6 +31,30 @@ cargo build --release
 - **Windows**: No additional dependencies required
 - **Linux**: X11 development libraries (`libx11-dev` and `libxrandr-dev` on Ubuntu/Debian)
 - **macOS**: No additional dependencies required
+
+## Development
+
+### Creating Releases
+
+To create a new release with pre-built binaries:
+
+1. Create and push a new tag:
+   ```bash
+   git tag v1.0.0
+   git push origin v1.0.0
+   ```
+
+2. GitHub Actions will automatically:
+   - Build binaries for all platforms
+   - Create a new GitHub release
+   - Attach the binaries to the release
+
+### GitHub Actions
+
+This project uses GitHub Actions for CI/CD:
+
+- **CI Workflow** (`.github/workflows/ci.yml`): Runs on every push/PR to test builds and run linting
+- **Build Workflow** (`.github/workflows/build.yml`): Creates release binaries when tags are pushed
 
 ## CLI Usage
 
