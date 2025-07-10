@@ -5,6 +5,10 @@ use clap::Parser;
 #[command(about = "A cross-platform CLI tool for switching and listing display specifications")]
 #[command(version = "0.1.0")]
 pub struct Args {
+    /// Optional spec or profile name (checks profiles first, then treats as spec)
+    #[arg(value_name = "SPEC_OR_PROFILE")]
+    pub spec_or_profile: Option<String>,
+
     /// Display specifications to try (in order of preference)
     #[arg(short, long, value_name = "SPEC", action = clap::ArgAction::Append)]
     pub spec: Vec<String>,
@@ -26,7 +30,7 @@ pub struct Args {
     pub create_profile: Option<String>,
     
     /// Switch to a named profile
-    #[arg(long, value_name = "NAME")]
+    #[arg(short = 'p', long, value_name = "NAME")]
     pub profile: Option<String>,
     
     /// List all available profiles
@@ -46,6 +50,8 @@ pub enum ParsedArgs {
     Profile { name: String },
     ListProfiles,
     Current { json: bool },
+    // New variant for handling the positional argument that could be either
+    SpecOrProfile { value: String, exact: bool },
 }
 
 impl Args {
@@ -67,6 +73,22 @@ impl Args {
             ParsedArgs::List {
                 spec: self.spec.first().cloned(),
                 json: self.json,
+            }
+        } else if let Some(value) = self.spec_or_profile {
+            // If we have a positional argument and no explicit specs, treat it as spec_or_profile
+            if self.spec.is_empty() {
+                ParsedArgs::SpecOrProfile {
+                    value,
+                    exact: self.exact,
+                }
+            } else {
+                // If we have both positional and --spec args, combine them
+                let mut all_specs = vec![value];
+                all_specs.extend(self.spec);
+                ParsedArgs::Switch {
+                    spec: all_specs,
+                    exact: self.exact,
+                }
             }
         } else {
             ParsedArgs::Switch {

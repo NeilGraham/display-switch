@@ -31,6 +31,15 @@ async fn main() -> Result<()> {
         ParsedArgs::Profile { name } => {
             handle_profile(&display_manager, &profile_manager, name).await?;
         }
+        ParsedArgs::SpecOrProfile { value, exact } => {
+            // Check if the value is a profile name first
+            if profile_manager.profile_exists(&value) {
+                handle_profile(&display_manager, &profile_manager, value).await?;
+            } else {
+                // Treat it as a spec
+                handle_switch(&display_manager, vec![value], exact).await?;
+            }
+        }
         ParsedArgs::ListProfiles => {
             handle_list_profiles(&profile_manager)?;
         }
